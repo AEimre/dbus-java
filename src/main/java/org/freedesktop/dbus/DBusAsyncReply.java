@@ -10,11 +10,6 @@
 */
 package org.freedesktop.dbus;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-
 import org.freedesktop.dbus.connections.AbstractConnection;
 import org.freedesktop.dbus.errors.Error;
 import org.freedesktop.dbus.errors.NoReply;
@@ -23,15 +18,16 @@ import org.freedesktop.dbus.exceptions.DBusExecutionException;
 import org.freedesktop.dbus.messages.Message;
 import org.freedesktop.dbus.messages.MethodCall;
 import org.freedesktop.dbus.messages.MethodReturn;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * A handle to an asynchronous method call.
  */
 public class DBusAsyncReply<T> {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
     * Check if any of a set of asynchronous calls have had a reply.
@@ -75,7 +71,6 @@ public class DBusAsyncReply<T> {
                 } catch (DBusExecutionException exDee) {
                     error = exDee;
                 } catch (DBusException dbe) {
-                    logger.debug("", dbe);
                     error = new DBusExecutionException(dbe.getMessage());
                 }
             }

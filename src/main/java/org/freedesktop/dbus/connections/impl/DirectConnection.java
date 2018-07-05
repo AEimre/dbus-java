@@ -35,8 +35,6 @@ import org.freedesktop.dbus.interfaces.DBusSigHandler;
 import org.freedesktop.dbus.interfaces.Introspectable;
 import org.freedesktop.dbus.messages.DBusSignal;
 import org.freedesktop.dbus.messages.ExportedObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.github.hypfvieh.util.StringUtil;
 
@@ -46,7 +44,6 @@ import com.github.hypfvieh.util.StringUtil;
  * </p>
  */
 public class DirectConnection extends AbstractConnection {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String machineId;
     /**
     * Create a direct connection to another application.
@@ -104,7 +101,6 @@ public class DirectConnection extends AbstractConnection {
         }
         address += ",port=" + port;
         address += ",guid=" + Transport.genGUID();
-        LoggerFactory.getLogger(DirectConnection.class).debug("Created Session address: {}", address);
         return address;
     }
 
@@ -122,11 +118,9 @@ public class DirectConnection extends AbstractConnection {
                 sb.append((char) ((Math.abs(r.nextInt()) % 26) + 65));
             }
             path = path.replaceAll("..........$", sb.toString());
-            LoggerFactory.getLogger(DirectConnection.class).trace("Trying path {}", path);
         } while ((new File(path)).exists());
         address += "abstract=" + path;
         address += ",guid=" + Transport.genGUID();
-        LoggerFactory.getLogger(DirectConnection.class).debug("Created Session address: {}", address);
         return address;
     }
 
@@ -168,7 +162,6 @@ public class DirectConnection extends AbstractConnection {
             getImportedObjects().put(newi, ro);
             return newi;
         } catch (Exception e) {
-            logger.debug("", e);
             throw new DBusException(MessageFormat.format("Failed to create proxy object for {0}; reason: {1}.", path, e.getMessage()));
         }
     }

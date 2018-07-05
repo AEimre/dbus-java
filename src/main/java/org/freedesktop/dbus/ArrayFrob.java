@@ -17,8 +17,6 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
-import org.slf4j.LoggerFactory;
-
 public final class ArrayFrob {
     private static final Hashtable<Class<? extends Object>, Class<? extends Object>> PRIMITIVE_TO_WRAPPER = new Hashtable<Class<? extends Object>, Class<? extends Object>>();
     private static final Hashtable<Class<? extends Object>, Class<? extends Object>> WRAPPER_TO_PRIMITIVE = new Hashtable<Class<? extends Object>, Class<? extends Object>>();
@@ -167,7 +165,6 @@ public final class ArrayFrob {
             }
 
         } catch (Exception e) {
-            LoggerFactory.getLogger(ArrayFrob.class).debug("Cannot convert object.", e);
             throw new IllegalArgumentException(e);
         }
 

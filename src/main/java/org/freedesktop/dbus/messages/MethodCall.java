@@ -10,18 +10,13 @@
 */
 package org.freedesktop.dbus.messages;
 
+import org.freedesktop.dbus.exceptions.DBusException;
+import org.freedesktop.dbus.exceptions.MessageFormatException;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.freedesktop.Hexdump;
-import org.freedesktop.dbus.exceptions.DBusException;
-import org.freedesktop.dbus.exceptions.MessageFormatException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class MethodCall extends Message {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     MethodCall() {
     }
@@ -81,7 +76,6 @@ public class MethodCall extends Message {
         });
 
         if (null != sig) {
-            logger.debug("Appending arguments with signature: {}", sig);
             hargs.add(new Object[] {
                     Message.HeaderField.SIGNATURE, new Object[] {
                             ArgumentType.SIGNATURE_STRING, sig
@@ -100,9 +94,7 @@ public class MethodCall extends Message {
         if (null != sig) {
             append(sig, args);
         }
-        logger.debug("Appended body, type: {} start: {} end: {} size: {}",sig, c, getByteCounter(), (getByteCounter() - c));
         marshallint(getByteCounter() - c, blen, 0, 4);
-        logger.debug("marshalled size ({}): {}",blen, Hexdump.format(blen));
     }
 
     private static long REPLY_WAIT_TIMEOUT = 20000;
@@ -130,7 +122,6 @@ public class MethodCall extends Message {
     * @param timeout The length of time to block before timing out (ms).
     */
     public synchronized Message getReply(long timeout) {
-        logger.trace("Blocking on {}", this);
         if (null != reply) {
             return reply;
         }
@@ -148,7 +139,6 @@ public class MethodCall extends Message {
     * @return The reply to this MethodCall, or null if a timeout happens.
     */
     public synchronized Message getReply() {
-        logger.trace("Blocking on {}", this);
 
         if (null != reply) {
             return reply;
@@ -162,7 +152,6 @@ public class MethodCall extends Message {
     }
 
     public synchronized void setReply(Message _reply) {
-        logger.trace("Setting reply to {} to {}", this, _reply);
         this.reply = _reply;
         notifyAll();
     }

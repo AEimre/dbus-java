@@ -42,8 +42,6 @@ import org.freedesktop.dbus.messages.DBusSignal;
 import org.freedesktop.dbus.messages.ExportedObject;
 import org.freedesktop.dbus.messages.MethodCall;
 import org.freedesktop.dbus.types.UInt32;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.github.hypfvieh.util.FileIoUtil;
 import com.github.hypfvieh.util.StringUtil;
@@ -61,7 +59,6 @@ import com.github.hypfvieh.util.SystemUtil;
  * </p>
  */
 public final class DBusConnection extends AbstractConnection {
-    private final Logger                             logger                     = LoggerFactory.getLogger(getClass());
 
     public static final String                       DEFAULT_SYSTEM_BUS_ADDRESS =
             "unix:path=/var/run/dbus/system_bus_socket";
@@ -256,18 +253,15 @@ public final class DBusConnection extends AbstractConnection {
             try {
                 busnames.add(dbus.Hello());
             } catch (DBusExecutionException dbee) {
-                logger.debug("", dbee);
                 throw new DBusException(dbee.getMessage());
             }
         }
     }
 
     protected DBusInterface dynamicProxy(String source, String path) throws DBusException {
-        logger.debug("Introspecting {} on {} for dynamic proxy creation", path, source);
         try {
             Introspectable intro = getRemoteObject(source, path, Introspectable.class);
             String data = intro.Introspect();
-            logger.trace("Got introspection data: {}", data);
 
             String[] tags = data.split("[<>]");
             List<String> ifaces = new ArrayList<>();
@@ -282,8 +276,6 @@ public final class DBusConnection extends AbstractConnection {
                 if (iface.startsWith("org.freedesktop.DBus.")) {
                     iface = iface.replaceAll("^.*\\.([^\\.]+)$", DBusInterface.class.getPackage().getName() + ".$1");
                 }
-
-                logger.debug("Trying interface {}", iface);
                 int j = 0;
                 while (j >= 0) {
                     try {
@@ -315,7 +307,6 @@ public final class DBusConnection extends AbstractConnection {
             getImportedObjects().put(newi, ro);
             return newi;
         } catch (Exception e) {
-            logger.debug("", e);
             throw new DBusException(
                     MessageFormat.format("Failed to create proxy object for {0} exported by {1}. Reason: {2}", path,
                             source, e.getMessage()));
@@ -357,7 +348,6 @@ public final class DBusConnection extends AbstractConnection {
             try {
                 dbus.ReleaseName(busname);
             } catch (DBusExecutionException dbee) {
-                logger.debug("", dbee);
                 throw new DBusException(dbee.getMessage());
             }
             this.busnames.remove(busname);
@@ -383,7 +373,6 @@ public final class DBusConnection extends AbstractConnection {
                 rv = dbus.RequestName(busname,
                         new UInt32(DBus.DBUS_NAME_FLAG_REPLACE_EXISTING | DBus.DBUS_NAME_FLAG_DO_NOT_QUEUE));
             } catch (DBusExecutionException dbee) {
-                logger.debug("", dbee);
                 throw new DBusException(dbee.getMessage());
             }
             switch (rv.intValue()) {
@@ -719,9 +708,7 @@ public final class DBusConnection extends AbstractConnection {
                     try {
                         dbus.RemoveMatch(rule.toString());
                     } catch (NotConnected exNc) {
-                        logger.debug("No connection.", exNc);
                     } catch (DBusExecutionException dbee) {
-                        logger.debug("", dbee);
                         throw new DBusException(dbee);
                     }
                 }
@@ -807,7 +794,6 @@ public final class DBusConnection extends AbstractConnection {
         try {
             dbus.AddMatch(rule.toString());
         } catch (DBusExecutionException dbee) {
-            logger.debug("", dbee);
             throw new DBusException(dbee.getMessage());
         }
         SignalTuple key = new SignalTuple(rule.getInterface(), rule.getMember(), rule.getObject(), rule.getSource());
@@ -834,7 +820,6 @@ public final class DBusConnection extends AbstractConnection {
 	        DBusConnection connection = CONNECTIONS.get(getAddress().getRawAddress());
 	        if (connection != null) {
 	            if (connection.getConcurrentConnections().get() <= 1) { // one left, this should be ourselfs
-	                logger.debug("Disconnecting last remaining DBusConnection");
 	                // Set all pending messages to have an error.
 	                try {
 	                    Error err = new Error("org.freedesktop.DBus.Local", "org.freedesktop.DBus.Local.Disconnected",
@@ -853,7 +838,6 @@ public final class DBusConnection extends AbstractConnection {
 	                super.disconnect();
 
 	            } else {
-	            	logger.debug("Still {} connections left, decreasing connection counter", connection.getConcurrentConnections().get() -1);
 	                connection.getConcurrentConnections().addAndGet(-1);
 	            }
 	        }
@@ -886,7 +870,6 @@ public final class DBusConnection extends AbstractConnection {
         @Override
         public void handle(DBusSignal s) {
             if (s instanceof org.freedesktop.dbus.interfaces.Local.Disconnected) {
-                logger.debug("Handling Disconnected signal from bus");
                 try {
                     Error err = new Error("org.freedesktop.DBus.Local", "org.freedesktop.DBus.Local.Disconnected", 0,
                             "s", new Object[] {

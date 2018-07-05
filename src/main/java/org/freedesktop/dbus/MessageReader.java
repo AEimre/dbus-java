@@ -95,7 +95,6 @@ public class MessageReader implements Closeable {
             len[1] += rv;
         }
         if (len[1] < 4) {
-            logger.debug("Only got {} of 4 bytes of header", len[1]);
             return null;
         }
 

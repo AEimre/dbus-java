@@ -10,32 +10,23 @@
 */
 package org.freedesktop.dbus.connections;
 
-import java.io.Closeable;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Random;
-
+import cx.ath.matthew.unix.UnixServerSocket;
+import cx.ath.matthew.unix.UnixSocket;
+import cx.ath.matthew.unix.UnixSocketAddress;
 import org.freedesktop.Hexdump;
 import org.freedesktop.dbus.MessageReader;
 import org.freedesktop.dbus.MessageWriter;
 import org.freedesktop.dbus.connections.BusAddress.AddressBusTypes;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.messages.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import cx.ath.matthew.unix.UnixServerSocket;
-import cx.ath.matthew.unix.UnixSocket;
-import cx.ath.matthew.unix.UnixSocketAddress;
+import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Random;
 
 public class Transport implements Closeable {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private MessageReader min;
     private MessageWriter mout;
 
@@ -80,7 +71,6 @@ public class Transport implements Closeable {
                 return min.readMessage();
             } catch (Exception _ex) {
                 if (_ex instanceof EOFException) { return null; }
-                logger.warn("Error while waiting for message: ", _ex);
             }
         }
         return null;
@@ -91,7 +81,6 @@ public class Transport implements Closeable {
     }
 
     private void connect(BusAddress address, int timeout) throws IOException {
-        logger.debug("Connecting to {}", address);
         OutputStream out = null;
         InputStream in = null;
         UnixSocket us = null;
@@ -148,7 +137,6 @@ public class Transport implements Closeable {
             throw new IOException("Failed to auth");
         }
         if (null != us) {
-            logger.trace("Setting timeout to {} on Socket", timeout);
             if (timeout == 1) {
                 us.setBlocking(false);
             } else {
@@ -156,7 +144,6 @@ public class Transport implements Closeable {
             }
         }
         if (null != s) {
-            logger.trace("Setting timeout to {} on Socket", timeout);
             s.setSoTimeout(timeout);
         }
         mout = new MessageWriter(out);
@@ -164,7 +151,6 @@ public class Transport implements Closeable {
     }
 
     public synchronized void disconnect() throws IOException {
-        logger.debug("Disconnecting Transport");
         min.close();
         mout.close();
         if (unixServerSocket != null && !unixServerSocket.isClosed()) {

@@ -1,34 +1,20 @@
 package org.freedesktop.dbus.connections;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import cx.ath.matthew.unix.UnixSocket;
+import org.freedesktop.Hexdump;
+import org.freedesktop.dbus.messages.Message;
+
+import java.io.*;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import org.freedesktop.Hexdump;
-import org.freedesktop.dbus.messages.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import cx.ath.matthew.unix.UnixSocket;
-
 public class SASL {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     public static class Command {
-        private final Logger logger = LoggerFactory.getLogger(getClass());
         private int    command;
         private int    mechs;
         private String data;
@@ -39,7 +25,6 @@ public class SASL {
 
         public Command(String s) throws IOException {
             String[] ss = s.split(" ");
-            logger.trace("Creating command from: {}", Arrays.toString(ss));
             if (0 == col.compare(ss[0], "OK")) {
                 command = COMMAND_OK;
                 data = ss[1];
@@ -81,7 +66,6 @@ public class SASL {
             } else {
                 throw new IOException("Invalid Command " + ss[0]);
             }
-            logger.trace("Created command: {}", this);
         }
 
         public int getCommand() {
@@ -298,11 +282,9 @@ public class SASL {
                 sb.append((char) c);
             }
         }
-        logger.trace("received: {}", sb);
         try {
             return new Command(sb.toString());
         } catch (Exception e) {
-            logger.error("Cannot create command.", e);
             return new Command();
         }
     }
@@ -340,7 +322,6 @@ public class SASL {
         }
         sb.append('\r');
         sb.append('\n');
-        logger.trace("sending: {}", sb);
         out.write(sb.toString().getBytes());
     }
     // CHECKSTYLE:OFF
@@ -349,9 +330,7 @@ public class SASL {
         switch (_auth) {
         case AUTH_SHA:
             String[] reply = stupidlyDecode(c.getData()).split(" ");
-            logger.trace(Arrays.toString(reply));
             if (3 != reply.length) {
-                logger.debug("Reply is not length 3");
                 return ERROR;
             }
             String context = reply[0];
@@ -361,7 +340,6 @@ public class SASL {
             try {
                 md = MessageDigest.getInstance("SHA");
             } catch (NoSuchAlgorithmException nsae) {
-                logger.debug("", nsae);
                 return ERROR;
             }
             byte[] buf = new byte[8];
@@ -374,19 +352,15 @@ public class SASL {
                 lCookie = findCookie(context, id);
             }
             if (null == lCookie) {
-                logger.debug("Did not find a cookie in context {}  with ID {}",context, id);
                 return ERROR;
             }
             String response = serverchallenge + ":" + clientchallenge + ":" + lCookie;
             buf = md.digest(response.getBytes());
 
-            logger.trace("Response: {} hash: {}", response, Hexdump.format(buf));
-
             response = stupidlyEncode(buf);
             c.setResponse(stupidlyEncode(clientchallenge + " " + response));
             return OK;
         default:
-            logger.debug("Not DBUS_COOKIE_SHA1 authtype.");
             return ERROR;
         }
     }
@@ -401,7 +375,6 @@ public class SASL {
         try {
             md = MessageDigest.getInstance("SHA");
         } catch (NoSuchAlgorithmException nsae) {
-            logger.error("", nsae);
             return ERROR;
         }
         switch (_auth) {
@@ -427,10 +400,7 @@ public class SASL {
                 try {
                     addCookie(context, "" + id, id / 1000, cookie);
                 } catch (IOException ioe) {
-                    logger.debug("", ioe);
                 }
-
-                logger.debug("Sending challenge: {} {} {}", context, id, challenge);
 
                 _c.setResponse(stupidlyEncode(context + ' ' + id + ' ' + challenge));
                 return CONTINUE;
@@ -447,7 +417,6 @@ public class SASL {
             String prehash = challenge + ":" + cchal + ":" + cookie;
             byte[] buf = md.digest(prehash.getBytes());
             String posthash = stupidlyEncode(buf);
-            logger.debug("Authenticating Hash; data={} remote-hash={} local-hash={}",prehash, hash, posthash);
             if (0 == col.compare(posthash, hash)) {
                 return OK;
             } else {
@@ -526,8 +495,6 @@ public class SASL {
         int state = INITIAL_STATE;
 
         while (state != AUTHENTICATED && state != FAILED) {
-
-            logger.trace("AUTH state: {}", state);
 
             switch (mode) {
             case MODE_CLIENT:

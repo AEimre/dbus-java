@@ -10,15 +10,13 @@
 */
 package org.freedesktop.dbus.types;
 
+import org.freedesktop.dbus.Marshalling;
+import org.freedesktop.dbus.exceptions.DBusException;
+
 import java.lang.reflect.Type;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.freedesktop.dbus.Marshalling;
-import org.freedesktop.dbus.exceptions.DBusException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A Wrapper class for Variant values.
@@ -27,7 +25,6 @@ import org.slf4j.LoggerFactory;
  * The Variant may be parameterized to restrict the types it may accept.
  */
 public class Variant<T> {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final T      value;
     private final Type   type;
     private final String sig;
@@ -49,7 +46,6 @@ public class Variant<T> {
             }
             this.sig = ss[0];
         } catch (DBusException dbe) {
-            logger.debug("", dbe);
             throw new IllegalArgumentException(MessageFormat.format("Can't wrap {0} in an unqualified Variant ({1}).", _value.getClass(), dbe.getMessage()));
         }
         this.value = _value;
@@ -73,7 +69,6 @@ public class Variant<T> {
             }
             this.sig = ss[0];
         } catch (DBusException dbe) {
-            logger.debug("", dbe);
             throw new IllegalArgumentException(MessageFormat.format("Can't wrap {0} in an unqualified Variant ({1}).", _type, dbe.getMessage()));
         }
         this.value = _value;
@@ -98,7 +93,6 @@ public class Variant<T> {
             }
             this.type = ts.get(0);
         } catch (DBusException dbe) {
-            logger.debug("", dbe);
             throw new IllegalArgumentException(MessageFormat.format("Can''t wrap {0} in an unqualified Variant ({1}).", _sig, dbe.getMessage()));
         }
         this.value = _value;

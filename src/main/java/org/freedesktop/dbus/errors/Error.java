@@ -10,25 +10,21 @@
 */
 package org.freedesktop.dbus.errors;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.freedesktop.dbus.connections.AbstractConnection;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.exceptions.DBusExecutionException;
 import org.freedesktop.dbus.exceptions.MessageFormatException;
 import org.freedesktop.dbus.exceptions.NotConnected;
 import org.freedesktop.dbus.messages.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Error messages which can be sent over the bus.
  */
 public class Error extends Message {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     public Error() {
     }
 
@@ -152,7 +148,6 @@ public class Error extends Message {
             ex.setType(getName());
             return ex;
         } catch (Exception ex1) {
-            logger.debug("", ex1);
             DBusExecutionException ex;
             Object[] args = null;
             try {

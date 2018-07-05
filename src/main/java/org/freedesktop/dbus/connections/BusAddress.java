@@ -11,15 +11,12 @@
 */
 package org.freedesktop.dbus.connections;
 
+import org.freedesktop.dbus.exceptions.DBusException;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import org.freedesktop.dbus.exceptions.DBusException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class BusAddress {
-    private final Logger        logger = LoggerFactory.getLogger(getClass());
 
     private final AddressBusTypes     type;
     private final Map<String, String> parameters = new HashMap<>();
@@ -31,8 +28,6 @@ public class BusAddress {
             throw new DBusException("Bus address is blank");
         }
 
-        logger.trace("Parsing bus address: {}", address);
-
         String[] ss = address.split(":", 2);
         if (ss.length < 2) {
             throw new DBusException("Bus address is invalid: " + address);
@@ -43,8 +38,6 @@ public class BusAddress {
             throw new DBusException("Unsupported transport type: " + ss[0]);
         }
 
-        logger.trace("Transport type: {}", type);
-
         rawAddress = address;
         
         String[] ps = ss[1].split(",");
@@ -52,8 +45,6 @@ public class BusAddress {
             String[] kv = p.split("=", 2);
             parameters.put(kv[0], kv[1]);
         }
-
-        logger.trace("Transport options: {}", parameters);
 
     }
 

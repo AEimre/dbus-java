@@ -10,16 +10,6 @@
 */
 package org.freedesktop.dbus.messages;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.GenericDeclaration;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.freedesktop.dbus.DBusMatchRule;
 import org.freedesktop.dbus.InternalSignal;
 import org.freedesktop.dbus.Marshalling;
@@ -29,8 +19,15 @@ import org.freedesktop.dbus.connections.AbstractConnection;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.exceptions.MessageFormatException;
 import org.freedesktop.dbus.interfaces.DBusInterface;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.GenericDeclaration;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DBusSignal extends Message {
     private static final Map<String, Class<? extends DBusSignal>>                            CLASS_CACHE       =
@@ -46,9 +43,6 @@ public class DBusSignal extends Message {
             new ConcurrentHashMap<>();
     private static final Map<String, String>                                                 INT_NAMES         =
             new ConcurrentHashMap<>();
-    
-    private final Logger                                                                     logger            =
-            LoggerFactory.getLogger(getClass());
 
     private Class<? extends DBusSignal>                                                      clazz;
     private boolean                                                                          bodydone          = false;
@@ -180,8 +174,6 @@ public class DBusSignal extends Message {
         if (null == clazz) {
             clazz = createSignalClass(intname, signame);
         }
-
-        logger.debug("Converting signal to type: {}", clazz);
         Type[] types = TYPE_CACHE.get(clazz);
         Constructor<? extends DBusSignal> con = CONSTRUCTOR_CACHE.get(clazz);
         if (null == types) {
@@ -210,8 +202,6 @@ public class DBusSignal extends Message {
                 Object[] params = new Object[args.length + 1];
                 params[0] = getPath();
                 System.arraycopy(args, 0, params, 1, args.length);
-
-                logger.debug("Creating signal of type {} with parameters {}", clazz , Arrays.deepToString(params));
                 s = con.newInstance(params);
             }
             s.getHeaders().putAll(getHeaders());
@@ -303,7 +293,6 @@ public class DBusSignal extends Message {
                 getHeaders().put(Message.HeaderField.SIGNATURE, sig);
                 setArgs(args);
             } catch (Exception e) {
-                logger.debug("", e);
                 throw new DBusException("Failed to add signal parameters: " + e.getMessage());
             }
         }

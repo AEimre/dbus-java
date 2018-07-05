@@ -1,15 +1,12 @@
 package org.freedesktop.dbus.connections;
 
-import java.util.Objects;
-
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.interfaces.FatalException;
 import org.freedesktop.dbus.messages.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 public class IncomingMessageThread extends Thread {
-    private final Logger             logger = LoggerFactory.getLogger(getClass());
 
     private boolean                  terminate;
     private final AbstractConnection connection;
@@ -38,7 +35,6 @@ public class IncomingMessageThread extends Thread {
                 // this blocks on outgoing being non-empty or a message being available.
                 msg = connection.readIncoming();
                 if (msg != null) {
-                    logger.trace("Got Incoming Message: {}", msg);
 
                     connection.handleMessage(msg);
 
@@ -51,7 +47,6 @@ public class IncomingMessageThread extends Thread {
                         setTerminate(true);
                     }
                 }
-                logger.error("Exception in connection thread.", _ex);
             }
         }
     }

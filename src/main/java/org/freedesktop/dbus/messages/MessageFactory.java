@@ -1,17 +1,12 @@
 package org.freedesktop.dbus.messages;
 
-import java.text.MessageFormat;
-
-import org.freedesktop.Hexdump;
 import org.freedesktop.dbus.errors.Error;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.exceptions.MessageTypeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.text.MessageFormat;
 
 public class MessageFactory {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageFactory.class);
 
     public static Message createMessage(byte _type, byte[] _buf, byte[] _header, byte[] _body) throws DBusException, MessageTypeException {
         Message m;
@@ -30,12 +25,6 @@ public class MessageFactory {
                 break;
             default:
                 throw new MessageTypeException(MessageFormat.format("Message type {0} unsupported", _type));
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(Hexdump.format(_buf));
-            LOGGER.trace(Hexdump.format(_header));
-            LOGGER.trace(Hexdump.format(_body));
         }
 
         m.populate(_buf, _header, _body);

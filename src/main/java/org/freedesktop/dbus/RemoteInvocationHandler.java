@@ -10,14 +10,6 @@
 */
 package org.freedesktop.dbus;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.lang.reflect.Type;
-import java.text.MessageFormat;
-import java.util.Arrays;
-
 import org.freedesktop.dbus.annotations.DBusInterfaceName;
 import org.freedesktop.dbus.annotations.DBusMemberName;
 import org.freedesktop.dbus.annotations.MethodNoReply;
@@ -32,12 +24,13 @@ import org.freedesktop.dbus.interfaces.DBusInterface;
 import org.freedesktop.dbus.messages.Message;
 import org.freedesktop.dbus.messages.MethodCall;
 
+import java.lang.reflect.*;
+import java.text.MessageFormat;
+
 public class RemoteInvocationHandler implements InvocationHandler {
     public static final int CALL_TYPE_SYNC     = 0;
     public static final int CALL_TYPE_ASYNC    = 1;
     public static final int CALL_TYPE_CALLBACK = 2;
-
-
 
     public static Object convertRV(String sig, Object[] rp, Method m, AbstractConnection conn) throws DBusException {
         Class<? extends Object> c = m.getReturnType();
@@ -50,12 +43,10 @@ public class RemoteInvocationHandler implements InvocationHandler {
             }
         } else {
             try {
-                LOGGER.trace("Converting return parameters from {} to type {}",Arrays.deepToString(rp), m.getGenericReturnType());
                 rp = Marshalling.deSerializeParameters(rp, new Type[] {
                         m.getGenericReturnType()
                 }, conn);
             } catch (Exception e) {
-                LOGGER.debug("Wrong return type.", e);
                 throw new DBusException(MessageFormat.format("Wrong return type (failed to de-serialize correct types: {0} )", e.getMessage()));
             }
         }
@@ -80,7 +71,6 @@ public class RemoteInvocationHandler implements InvocationHandler {
             try {
                 return cons.newInstance(rp);
             } catch (Exception e) {
-                LOGGER.debug("", e);
                 throw new DBusException(e.getMessage());
             }
         }
@@ -125,7 +115,6 @@ public class RemoteInvocationHandler implements InvocationHandler {
                 }
             }
         } catch (DBusException dbe) {
-            LOGGER.debug("Failed to construct outgoing method call.", dbe);
             throw new DBusExecutionException("Failed to construct outgoing method call: " + dbe.getMessage());
         }
         if (!conn.isConnected()) {
@@ -162,7 +151,6 @@ public class RemoteInvocationHandler implements InvocationHandler {
         try {
             return convertRV(reply.getSig(), reply.getParameters(), m, conn);
         } catch (DBusException e) {
-            LOGGER.debug("", e);
             throw new DBusExecutionException(e.getMessage());
         }
     }

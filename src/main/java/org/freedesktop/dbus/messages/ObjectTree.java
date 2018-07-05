@@ -12,14 +12,9 @@ package org.freedesktop.dbus.messages;
 
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Keeps track of the exported objects for introspection data */
 public class ObjectTree {
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     class TreeNode {
         // CHECKSTYLE:OFF
@@ -117,12 +112,10 @@ public class ObjectTree {
     }
 
     public synchronized void add(String path, ExportedObject object, String data) {
-        logger.debug("Adding {} to object tree", path);
         root = recursiveAdd(root, path, object, data);
     }
 
     public synchronized void remove(String path) {
-        logger.debug("Removing {} from object tree", path);
         TreeNode t = recursiveFind(root, path);
         t.object = null;
         t.data = null;
