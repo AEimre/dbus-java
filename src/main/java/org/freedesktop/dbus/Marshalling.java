@@ -10,45 +10,23 @@
 */
 package org.freedesktop.dbus;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.freedesktop.dbus.annotations.Position;
 import org.freedesktop.dbus.connections.AbstractConnection;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.interfaces.DBusInterface;
 import org.freedesktop.dbus.interfaces.DBusSerializable;
 import org.freedesktop.dbus.messages.Message;
-import org.freedesktop.dbus.types.DBusListType;
-import org.freedesktop.dbus.types.DBusMapType;
-import org.freedesktop.dbus.types.DBusStructType;
-import org.freedesktop.dbus.types.UInt16;
-import org.freedesktop.dbus.types.UInt32;
-import org.freedesktop.dbus.types.UInt64;
-import org.freedesktop.dbus.types.Variant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.freedesktop.dbus.types.*;
+
+import java.lang.reflect.*;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Contains static methods for marshalling values.
  */
 public final class Marshalling {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Marshalling.class);
-
     private static final Map<Type, String[]> TYPE_CACHE = new HashMap<>();
 
     private static final Map<Class<?>, Byte> CLASS_TO_ARGUMENTTYPE = new LinkedHashMap<>();
@@ -216,7 +194,6 @@ public final class Marshalling {
                     }
                     _out[_level].append(s[0]);
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
-                    LOGGER.debug("", aioobe);
                     throw new DBusException("Map must have 2 parameters");
                 }
                 _out[_level].append('}');
@@ -307,8 +284,6 @@ public final class Marshalling {
                 }
             }
         }
-
-        LOGGER.trace("Converted Java type: {} to D-Bus Type: {}", _dataType, _out[_level]);
 
         return new String[] {
                 _out[_level].toString()
@@ -414,7 +389,6 @@ public final class Marshalling {
             }
             return i;
         } catch (IndexOutOfBoundsException ioobe) {
-            LOGGER.debug("Failed to parse DBus type signature.", ioobe);
             throw new DBusException("Failed to parse DBus type signature: " + dbus);
         }
     }
@@ -435,7 +409,6 @@ public final class Marshalling {
             if (null == parameters[i]) {
                 continue;
             }
-            LOGGER.trace("Converting {} from {} to {}", i, parameters[i], types[i]);
 
             if (parameters[i] instanceof DBusSerializable) {
                 for (Method m : parameters[i].getClass().getDeclaredMethods()) {
@@ -468,7 +441,6 @@ public final class Marshalling {
                 System.arraycopy(newparams, 0, exparams, i, newparams.length);
                 System.arraycopy(parameters, i + 1, exparams, i + newparams.length, parameters.length - i - 1);
                 parameters = exparams;
-                LOGGER.trace("New params: {}, new types: {}", Arrays.deepToString(parameters), Arrays.deepToString(types));
                 i--;
             } else if (types[i] instanceof TypeVariable && !(parameters[i] instanceof Variant)) {
                 // its an unwrapped variant, wrap it
@@ -482,8 +454,6 @@ public final class Marshalling {
 
     @SuppressWarnings("unchecked")
     static Object deSerializeParameter(Object parameter, Type type, AbstractConnection conn) throws Exception {
-        LOGGER.trace("Deserializing from {} to {}", parameter.getClass(), type.getClass());
-
         // its a wrapped variant, unwrap it
         if (type instanceof TypeVariable && parameter instanceof Variant) {
             parameter = ((Variant<?>) parameter).getValue();
@@ -507,7 +477,6 @@ public final class Marshalling {
 
         // it should be a struct. create it
         if (parameter instanceof Object[] && type instanceof Class && Struct.class.isAssignableFrom((Class<?>) type)) {
-            LOGGER.trace("Creating Struct {} from {}", type, parameter);
             Type[] ts = Container.getTypeCache(type);
             if (null == ts) {
                 Field[] fs = ((Class<?>) type).getDeclaredFields();
@@ -592,7 +561,6 @@ public final class Marshalling {
             }
         }
         if (parameter instanceof DBusMap) {
-            LOGGER.trace("Deserializing a Map");
             DBusMap<?,?> dmap = (DBusMap<?,?>) parameter;
             Type[] maptypes = ((ParameterizedType) type).getActualTypeArguments();
             for (int i = 0; i < dmap.entries.length; i++) {
@@ -604,7 +572,6 @@ public final class Marshalling {
     }
 
     static List<Object> deSerializeParameters(List<Object> parameters, Type type, AbstractConnection conn) throws Exception {
-        LOGGER.trace("Deserializing from {} to {}",parameters, type);
         if (null == parameters) {
             return null;
         }
@@ -643,7 +610,6 @@ public final class Marshalling {
 
     @SuppressWarnings("unchecked")
     public static Object[] deSerializeParameters(Object[] parameters, Type[] types, AbstractConnection conn) throws Exception {
-        LOGGER.trace("Deserializing from {} to {} ", Arrays.deepToString(parameters), Arrays.deepToString(types));
         if (null == parameters) {
             return null;
         }
@@ -655,12 +621,6 @@ public final class Marshalling {
         for (int i = 0; i < parameters.length; i++) {
             // CHECK IF ARRAYS HAVE THE SAME LENGTH <-- has to happen after expanding parameters
             if (i >= types.length) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.error("Parameter length differs, expected {} but got {}", parameters.length, types.length);
-                    for (int j = 0; j < parameters.length; j++) {
-                        LOGGER.error("Error, Parameters differ: {}, '{}'", j, parameters[j].toString());
-                    }
-                }
                 throw new DBusException("Error deserializing message: number of parameters didn't match receiving signature");
             }
             if (null == parameters[i]) {
@@ -689,7 +649,6 @@ public final class Marshalling {
                             System.arraycopy(parameters, i + newtypes.length, compress, i + 1, parameters.length - i - newtypes.length);
                             parameters = compress;
                         } catch (ArrayIndexOutOfBoundsException aioobe) {
-                            LOGGER.debug("", aioobe);
                             throw new DBusException(MessageFormat.format("Not enough elements to create custom object from serialized data ({0} < {1}).", parameters.length - i, newtypes.length));
                         }
                     }

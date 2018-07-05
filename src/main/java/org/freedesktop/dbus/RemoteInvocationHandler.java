@@ -31,15 +31,11 @@ import org.freedesktop.dbus.interfaces.CallbackHandler;
 import org.freedesktop.dbus.interfaces.DBusInterface;
 import org.freedesktop.dbus.messages.Message;
 import org.freedesktop.dbus.messages.MethodCall;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RemoteInvocationHandler implements InvocationHandler {
     public static final int CALL_TYPE_SYNC     = 0;
     public static final int CALL_TYPE_ASYNC    = 1;
     public static final int CALL_TYPE_CALLBACK = 2;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteInvocationHandler.class);
 
 
 

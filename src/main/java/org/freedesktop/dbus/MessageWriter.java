@@ -10,21 +10,15 @@
 */
 package org.freedesktop.dbus;
 
+import cx.ath.matthew.unix.USOutputStream;
+import org.freedesktop.dbus.messages.Message;
+
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.freedesktop.Hexdump;
-import org.freedesktop.dbus.messages.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import cx.ath.matthew.unix.USOutputStream;
-
 public class MessageWriter implements Closeable {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private OutputStream outputStream;
     private boolean      unixSocket;
@@ -44,25 +38,16 @@ public class MessageWriter implements Closeable {
     }
 
     public void writeMessage(Message m) throws IOException {
-        logger.info("<= {}", m);
         if (null == m) {
             return;
         }
         if (null == m.getWireData()) {
-            logger.warn("Message {} wire-data was null!", m);
             return;
         }
         if (unixSocket) {
-            if (logger.isTraceEnabled()) {
-                logger.debug("Writing all {} buffers simultaneously to Unix Socket", m.getWireData().length );
-                for (byte[] buf : m.getWireData()) {
-                    logger.trace("({}):{}", buf, (null == buf ? "" : Hexdump.format(buf)));
-                }
-            }
             ((USOutputStream) outputStream).write(m.getWireData());
         } else {
             for (byte[] buf : m.getWireData()) {
-                logger.trace("({}):{}", buf, (null == buf ? "" : Hexdump.format(buf)));
                 if (null == buf) {
                     break;
                 }
@@ -74,7 +59,6 @@ public class MessageWriter implements Closeable {
 
     @Override
     public void close() throws IOException {
-        logger.info("Closing Message Writer");
         if (outputStream != null) {
             outputStream.close();
         }

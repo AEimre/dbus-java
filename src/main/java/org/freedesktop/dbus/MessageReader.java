@@ -22,16 +22,12 @@ import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.exceptions.MessageProtocolVersionException;
 import org.freedesktop.dbus.messages.Message;
 import org.freedesktop.dbus.messages.MessageFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.github.hypfvieh.system.LibcErrorCodes;
 
 import cx.ath.matthew.unix.UnixIOException;
 
 public class MessageReader implements Closeable {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private InputStream inputStream;
     private byte[]      buf    = null;
     private byte[]      tbuf   = null;
@@ -70,7 +66,6 @@ public class MessageReader implements Closeable {
             return null;
         }
         if (len[0] < 12) {
-            logger.debug("Only got {} of 12 bytes of header", len[0]);
             return null;
         }
 
@@ -133,7 +128,6 @@ public class MessageReader implements Closeable {
             len[2] += rv;
         }
         if (len[2] < headerlen) {
-            logger.debug("Only got {} of {} bytes of header", len[2], headerlen);
             return null;
         }
 
@@ -158,29 +152,19 @@ public class MessageReader implements Closeable {
             len[3] += rv;
         }
         if (len[3] < body.length) {
-            logger.debug("Only got {} of {} bytes of body", len[3], body.length);
             return null;
         }
 
         Message m;
         try {
             m = MessageFactory.createMessage(type, buf, header, body);
-        } catch (DBusException dbe) {
-            logger.debug("", dbe);
+        } catch (DBusException | RuntimeException dbe) {
             buf = null;
             tbuf = null;
             body = null;
             header = null;
             throw dbe;
-        } catch (RuntimeException exRe) { // this really smells badly!
-            logger.debug("", exRe);
-            buf = null;
-            tbuf = null;
-            body = null;
-            header = null;
-            throw exRe;
         }
-        logger.debug("=> {}", m);
         buf = null;
         tbuf = null;
         body = null;
@@ -190,7 +174,6 @@ public class MessageReader implements Closeable {
 
     @Override
     public void close() throws IOException {
-        logger.trace("Closing Message Reader");
         if (inputStream != null) {
             inputStream.close();
         }
