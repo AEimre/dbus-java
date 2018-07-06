@@ -30,7 +30,6 @@ public class FallbackContainer {
         ExportedObject bestobject = null;
         String[] pathel = path.split("/");
         for (String[] fbpath : fallbacks.keySet()) {
-                    Arrays.deepToString(fbpath), Arrays.deepToString(pathel));
             for (i = 0; i < pathel.length && i < fbpath.length; i++) {
                 if (!pathel[i].equals(fbpath[i])) {
                     break;

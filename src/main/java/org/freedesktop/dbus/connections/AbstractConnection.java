@@ -820,7 +820,6 @@ public abstract class AbstractConnection implements Closeable {
             if (null != cbh) {
                 final CallbackHandler<Object> fcbh = cbh;
                 final DBusAsyncReply<?> fasr = asr;
-                        fasr != null ? fasr.getMethod() : null);
                 Runnable r = new Runnable() {
 
                     @Override
